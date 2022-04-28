@@ -157,6 +157,14 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Utils\svpng.inc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Render\ray.h" />
+    <ClInclude Include="Utils\color.h" />
+    <ClInclude Include="Utils\vec3.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
