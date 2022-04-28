@@ -34,5 +34,23 @@
     <ClInclude Include="Render\ray.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Object\hittable.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\sphere.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\hittable_list.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\rtweekend.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\camera.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\material.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
