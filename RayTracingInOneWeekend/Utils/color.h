@@ -13,7 +13,10 @@ public:
 
     ~OutputHelper()
     {
-        fopen_s(&imageFile, image_name, "wb");
+        FILE* imageFile;
+        char imagePath[50] = "../";
+        strcat_s(imagePath, image_name);
+        fopen_s(&imageFile, imagePath, "wb");
         if (imageFile == NULL) {
             perror("ERROR: Cannot open output file");
             exit(EXIT_FAILURE);// Dont let exception get out of the destructor
@@ -22,7 +25,7 @@ public:
         fclose(imageFile);
     }
 
-    void write_color(color pixel_color) {
+    void write_color(const color& pixel_color) {
         unsigned char cr = static_cast<unsigned char>(255.999 * pixel_color.x());
         unsigned char cg = static_cast<unsigned char>(255.999 * pixel_color.y());
         unsigned char cb = static_cast<unsigned char>(255.999 * pixel_color.z());
@@ -33,10 +36,9 @@ public:
     }
 
 private:
+    std::vector<unsigned char> image_data;
     const int image_width;
     const int image_height;
     const char* image_name;
     int idx;
-    std::vector<unsigned char> image_data;
-    FILE* imageFile;
 };
