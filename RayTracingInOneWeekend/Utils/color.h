@@ -29,7 +29,7 @@ public:
         unsigned char cr = static_cast<unsigned char>(255.999 * pixel_color.x());
         unsigned char cg = static_cast<unsigned char>(255.999 * pixel_color.y());
         unsigned char cb = static_cast<unsigned char>(255.999 * pixel_color.z());
-        image_data[idx]        = cr;
+        image_data[idx] = cr;
         image_data[idx + 1] = cg;
         image_data[idx + 2] = cb;
         idx += 3;

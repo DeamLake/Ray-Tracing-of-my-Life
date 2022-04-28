@@ -3,9 +3,9 @@
 #include "Utils/vec3.h"
 
 int main() {
-    const int   image_width     = 256;
-    const int   image_height    = 256;
-    const char* image_name   = "test.png";
+    const int   image_width = 256;
+    const int   image_height = 256;
+    const char* image_name = "test.png";
 
     OutputHelper helper(image_width, image_height, image_name);
     for (int i = image_height - 1; i >= 0; --i) {
