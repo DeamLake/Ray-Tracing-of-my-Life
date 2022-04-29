@@ -2,9 +2,9 @@
 Ray Tracing in One Weekend/The next Week/The Rest of my life
 
 ## TODO
-- [ ] Tracing in One Weekend
+- [x] Ray Tracing in One Weekend
     - [x] Code
-    - [ ] more docs
+    - [x] more docs
 - [ ] The next Week
 - [ ] The Rest of my life
 ## Notes

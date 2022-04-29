@@ -10,11 +10,12 @@
 color ray_color(const ray& r, const hittable& world, int depth) {
     hit_record rec;
 
-    // If we've exceeded the ray bounce limit, no more light is gathered.
+    // 限制光的反射次数
     if (depth <= 0)
         return color(0, 0, 0);
 
     if (world.hit(r, 0.001, infinity, rec)) {
+        // 命中之后 计算交点的散射情况
         ray scattered;
         color attenuation;
         if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
@@ -102,6 +103,7 @@ int main() {
         for (int i = 0; i < image_width; ++i) {
             color pixel_color(0, 0, 0);
             for (int s = 0; s < samples_per_pixel; ++s) {
+                // 增加偏移用于多次光线采样
                 auto u = (i + random_double()) / (image_width - 1);
                 auto v = (j + random_double()) / (image_height - 1);
                 ray r = cam.get_ray(u, v);

@@ -27,7 +27,7 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) cons
     if (discriminant < 0) return false;
     auto sqrtd = sqrt(discriminant);
 
-    // Find the nearest root that lies in the acceptable range.
+    // 找到正确范围内最近的根作为最近的交点结果
     auto root = (-half_b - sqrtd) / a;
     if (root < t_min || t_max < root) {
         root = (-half_b + sqrtd) / a;
@@ -35,6 +35,7 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) cons
             return false;
     }
 
+    // 以下部分表示光线命中球体  记录rec 并返回 true
     rec.t = root;
     rec.p = r.at(rec.t);
     vec3 outward_normal = (rec.p - center) / radius;
