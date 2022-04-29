@@ -19,7 +19,7 @@ public:
         fopen_s(&imageFile, imagePath, "wb");
         if (imageFile == NULL) {
             perror("ERROR: Cannot open output file");
-            exit(EXIT_FAILURE);// Dont let exception get out of the destructor
+            exit(EXIT_FAILURE);// 不要让异常跑出析构函数  会造成析构函数循环调用
         }
         svpng(imageFile, image_width, image_height, image_data.data(), 0);
         fclose(imageFile);
@@ -30,7 +30,7 @@ public:
         auto g = pixel_color.y();
         auto b = pixel_color.z();
 
-        // Divide the color by the number of samples and gamma-correct for gamma=2.0.
+        // 将多次采样获得的颜色值对采样次数做平均  并做gamma校正
         auto scale = 1.0 / samples_per_pixel;
         r = sqrt(scale * r);
         g = sqrt(scale * g);
