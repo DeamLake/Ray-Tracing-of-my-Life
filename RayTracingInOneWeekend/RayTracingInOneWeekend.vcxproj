@@ -164,6 +164,7 @@
     <ClInclude Include="Object\hittable.h" />
     <ClInclude Include="Object\hittable_list.h" />
     <ClInclude Include="Object\material.h" />
+    <ClInclude Include="Object\moving_sphere.h" />
     <ClInclude Include="Object\sphere.h" />
     <ClInclude Include="Render\camera.h" />
     <ClInclude Include="Render\ray.h" />
