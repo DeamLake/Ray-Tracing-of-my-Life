@@ -55,5 +55,11 @@
     <ClInclude Include="Object\moving_sphere.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Object\aabb.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\bvh.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

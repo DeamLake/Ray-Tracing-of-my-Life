@@ -161,6 +161,8 @@
     <None Include="Utils\svpng.inc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Object\aabb.h" />
+    <ClInclude Include="Object\bvh.h" />
     <ClInclude Include="Object\hittable.h" />
     <ClInclude Include="Object\hittable_list.h" />
     <ClInclude Include="Object\material.h" />
