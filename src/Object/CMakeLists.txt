@@ -2,4 +2,4 @@
 
 aux_source_directory(${curr_dir} Object_SRCS)
 
-add_library(object ${Object_SRCS} "hittable_list.h")
+add_library(object ${Object_SRCS} "material.h" "sphere.h")

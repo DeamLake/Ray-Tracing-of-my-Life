@@ -2,4 +2,4 @@
 
 aux_source_directory(${curr_dir} Render_SRCS)
 
-add_library(render ${Render_SRCS}  "ray.h")
+add_library(render ${Render_SRCS}  "camera.h")
