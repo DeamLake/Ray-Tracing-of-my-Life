@@ -1,7 +1,6 @@
 # Directories
 .vs/
-bin/
+out/
 
 # Files
-*.user
 test.*
