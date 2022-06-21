@@ -2,7 +2,8 @@
 #include "rtweekend.h"
 #include "ray.h"
 
-class camera {
+class camera 
+{
 public:
     camera(
         point3 lookfrom,
@@ -11,8 +12,8 @@ public:
         double vfov, // vertical field-of-view in degrees
         double aspect_ratio,
         double aperture,
-        double focus_dist
-    ) {
+        double focus_dist) 
+    {
         double theta = degrees_to_radians(vfov);
         double h = tan(theta / 2);
         double viewport_height = 2.0 * h;
@@ -30,7 +31,8 @@ public:
         lens_radius = aperture / 2; // 棱镜厚度 用于模糊
     }
 
-    ray get_ray(double s, double t) const {
+    ray get_ray(double s, double t) const 
+    {
         vec3 rd = lens_radius * random_in_unit_disk();
         vec3 offset = u * rd.x() + v * rd.y();
 

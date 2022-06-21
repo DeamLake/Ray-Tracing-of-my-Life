@@ -2,7 +2,8 @@
 #include <algorithm>
 #include "hittable_list.h"
 
-class bvh_node : public hittable {
+class bvh_node : public hittable 
+{
 public:
     bvh_node();
 

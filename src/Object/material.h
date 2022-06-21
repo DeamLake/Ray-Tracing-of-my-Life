@@ -1,49 +1,56 @@
 #pragma once
 #include "rtweekend.h"
+#include "texture.h"
 
 struct hit_record;
 
-class material {
+class material
+{
 public:
     virtual bool scatter(
         const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
     ) const = 0;
+    virtual color emitted(double u, double v, const point3& p) const {
+        return color(0, 0, 0);
+    }
 };
 
 // 理想散射材质
-class lambertian : public material {
+class lambertian : public material 
+{
 public:
-    lambertian(const color& a) : albedo(a) {}
-
+    lambertian(const color& a) : albedo(make_shared<constant_texture>(a)) {}
+    lambertian(shared_ptr<texture> a) : albedo(a) {}
     // 计算材质散射
     virtual bool scatter(
-        const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
-    ) const override {
+        const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered) const override 
+    {
         // 基于法向量计算随机反射方向  位置为法向量末端单位球内随机点
         auto scatter_direction = rec.normal + random_unit_vector();
 
-        // 捕获退化的散射方向  设置为法向量
+        // 捕获退化的散射方向  重置为法向量
         if (scatter_direction.near_zero())
             scatter_direction = rec.normal;
 
         // 记录反射光线和光衰减系数
         scattered = ray(rec.p, scatter_direction);
-        attenuation = albedo;
+        attenuation = albedo->value(rec.u, rec.v, rec.p);
         return true;
     }
 
 public:
-    color albedo; // 光衰减系数
+    shared_ptr<texture> albedo; // 材质
 };
 
 // 金属材质
-class metal : public material {
+class metal : public material 
+{
 public:
     metal(const color& a, double f) : albedo(a), fuzz(f < 1 ? f : 1) {}
 
     virtual bool scatter(
-        const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
-    ) const override {
+        const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered) const override 
+    {
         // 计算放射向量
         vec3 reflected = reflect(unit_vector(r_in.direction()), rec.normal);
 
@@ -59,13 +66,14 @@ public:
 };
 
 // 可透视介质
-class dielectric : public material {
+class dielectric : public material 
+{
 public:
     dielectric(double index_of_refraction) : ir(index_of_refraction) {}
 
     virtual bool scatter(
-        const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
-    ) const override {
+        const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered) const override 
+    {
         // 无光衰减
         attenuation = color(1.0, 1.0, 1.0);
         // 介质折射率
@@ -92,10 +100,30 @@ public:
 public:
     double ir; // Index of Refraction
 private:
-    static double reflectance(double cosine, double ref_idx) {
+    static double reflectance(double cosine, double ref_idx) 
+    {
         // 使用石里克近似计算反射系数 如果从一个陡峭的角度看窗户  它就变成了一面镜子
         auto r0 = (1 - ref_idx) / (1 + ref_idx);
         r0 = r0 * r0;
         return r0 + (1 - r0) * pow((1 - cosine), 5);
     }
+};
+
+class diffuse_light : public material {
+public:
+    diffuse_light(shared_ptr<texture> a) : emit(a) {}
+    diffuse_light(color c) : emit(make_shared<constant_texture>(c)) {}
+
+    virtual bool scatter(
+        const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
+    ) const override {
+        return false;
+    }
+
+    virtual color emitted(double u, double v, const point3& p) const override {
+        return emit->value(u, v, p);
+    }
+
+public:
+    shared_ptr<texture> emit;
 };

@@ -2,4 +2,4 @@
 
 aux_source_directory(${curr_dir} Utils_SRCS)
 
-add_library(utils ${Utils_SRCS})
+add_library(utils ${Utils_SRCS} "stb_raw_image.h")

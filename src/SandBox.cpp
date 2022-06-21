@@ -7,7 +7,7 @@
 #include "camera.h"
 #include <tbb/tbb/parallel_for.h>
 
-color ray_color(const ray& r, const hittable& world, int depth) 
+color ray_color(const ray& r, const color& background, const hittable& world, int depth)
 {
     hit_record rec;
 
@@ -15,19 +15,40 @@ color ray_color(const ray& r, const hittable& world, int depth)
     if (depth <= 0)
         return color(0, 0, 0);
 
-    if (world.hit(r, 0.001, infinity, rec)) {
-        // 命中之后 计算交点的散射情况
-        ray scattered;
-        color attenuation;
-        if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
-            return attenuation * ray_color(scattered, world, depth - 1);
-        return color(0, 0, 0);
-    }
-    vec3 unit_direction = unit_vector(r.direction());
-    double t = 0.5 * (unit_direction.y() + 1.0);
-    return (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
+    // If the ray hits nothing, return the background color.
+    if (!world.hit(r, 0.001, infinity, rec))
+        return background;
+
+    ray scattered; // 记录散射光
+    color attenuation; // 光反射系数
+    color emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p); // 自发光项
+
+    // 如果材质不具备反射/折射能力 直接返回自发光项
+    if (!rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+        return emitted;
+
+    // 否则根据其他属性进行迭代计算
+    return emitted + attenuation * ray_color(scattered, background, world, depth - 1);
 }
 
+hittable_list two_spheres() {
+    hittable_list objects;
+
+    auto checker = make_shared<checker_texture>(color(0.2, 0.3, 0.1), color(0.9, 0.9, 0.9));
+
+    objects.add(make_shared<sphere>(point3(0, -10, 0), 10, make_shared<lambertian>(checker)));
+    objects.add(make_shared<sphere>(point3(0, 10, 0), 10, make_shared<lambertian>(checker)));
+
+    return objects;
+}
+
+hittable_list earth() {
+    auto earth_texture = make_shared<image_texture>("../Resource/earthmap.jpg");
+    auto earth_surface = make_shared<lambertian>(earth_texture);
+    auto globe = make_shared<sphere>(point3(0, 0, 0), 2, earth_surface);
+
+    return hittable_list(globe);
+}
 
 int main() 
 {
@@ -36,25 +57,40 @@ int main()
     const int image_height = 400;
     const int samples_per_pixel = 100;
     const int max_depth = 50;
+    color background(0, 0, 0);
     const double aspect_ratio = static_cast<int>(image_width / image_height);
-    OutputHelper helper(image_width, image_height, "test.png");
-
-    // World
-    hittable_list world;
-    world.add(make_shared<sphere>(vec3(0, 0, -1), 0.5, make_shared<lambertian>(vec3(0.1, 0.2, 0.5))));
-    world.add(make_shared<sphere>(
-        vec3(0, -100.5, -1), 100, make_shared<lambertian>(vec3(0.8, 0.8, 0.0))));
-    world.add(make_shared<sphere>(vec3(1, 0, -1), 0.5, make_shared<metal>(vec3(0.8, 0.6, 0.2), 0.3)));
-    world.add(make_shared<sphere>(vec3(-1, 0, -1), 0.5, make_shared<dielectric>(1.5)));
-    world.add(make_shared<sphere>(vec3(-1, 0, -1), -0.45, make_shared<dielectric>(1.5)));
+    OutputHelper helper(image_width, image_height, "./out/Results/test.png");
 
     // Camera
     point3 lookfrom(13, 2, 3);
     point3 lookat(0, 0, 0);
     vec3 vup(0, 1, 0);
     double dist_to_focus = 10.0;
-    double aperture = 0.1;
+    double aperture = 0.0;
     double vfov = 20;
+
+    // World
+    hittable_list world;
+    switch (0) {
+    case 0:
+        world = earth();
+        lookfrom = point3(13, 2, 3);
+        background = color(0.70, 0.80, 1.00);
+        lookat = point3(0, 0, 0);
+        vfov = 20.0;
+        break;
+    case 1:
+        world = two_spheres();
+        background = color(0.70, 0.80, 1.00);
+        lookfrom = point3(13, 2, 3);
+        lookat = point3(0, 0, 0);
+        vfov = 20.0;
+        break;
+    default:
+    case -1:
+        background = color(0.0, 0.0, 0.0);
+        break;
+    }
 
     camera cam(lookfrom, lookat, vup, vfov, aspect_ratio, aperture, dist_to_focus);
 
@@ -71,7 +107,7 @@ int main()
                         double u = (i + random_double()) / (image_width - 1);
                         double v = (j + random_double()) / (image_height - 1);
                         ray r = cam.get_ray(u, v);
-                        pixel_color += ray_color(r, world, max_depth);
+                        pixel_color += ray_color(r, background, world, max_depth);
                     }
                 });
             helper.write_color(pixel_color, samples_per_pixel);

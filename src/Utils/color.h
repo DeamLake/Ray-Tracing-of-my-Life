@@ -3,7 +3,8 @@
 #include "vec3.h"
 #include "svpng.inc"
 
-class OutputHelper {
+class OutputHelper 
+{
 public:
     OutputHelper(const int width, const int height, const char* name) 
         :image_width(width), image_height(height), image_name(name) , idx(0)
@@ -25,7 +26,8 @@ public:
         fclose(imageFile);
     }
 
-    void write_color(const color& pixel_color, int samples_per_pixel) {
+    void write_color(const color& pixel_color, int samples_per_pixel) 
+    {
         auto r = pixel_color.x();
         auto g = pixel_color.y();
         auto b = pixel_color.z();
