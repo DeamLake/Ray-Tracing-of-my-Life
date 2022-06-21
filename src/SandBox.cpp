@@ -1,11 +1,13 @@
 #include<iostream>
+#include <mutex>
+#include <tbb/tbb/parallel_for.h>
 #include "rtweekend.h"
 #include "color.h"
 #include "sphere.h"
 #include "material.h"
 #include "bvh.h"
 #include "camera.h"
-#include <tbb/tbb/parallel_for.h>
+#include "aarect.h"
 
 color ray_color(const ray& r, const color& background, const hittable& world, int depth)
 {
@@ -35,7 +37,6 @@ hittable_list two_spheres() {
     hittable_list objects;
 
     auto checker = make_shared<checker_texture>(color(0.2, 0.3, 0.1), color(0.9, 0.9, 0.9));
-
     objects.add(make_shared<sphere>(point3(0, -10, 0), 10, make_shared<lambertian>(checker)));
     objects.add(make_shared<sphere>(point3(0, 10, 0), 10, make_shared<lambertian>(checker)));
 
@@ -50,16 +51,49 @@ hittable_list earth() {
     return hittable_list(globe);
 }
 
+hittable_list simple_light() {
+    hittable_list objects;
+
+    auto pertext = make_shared<noise_texture>(4);
+    objects.add(make_shared<sphere>(point3(0, -1000, 0), 1000, make_shared<lambertian>(pertext)));
+    objects.add(make_shared<sphere>(point3(0, 2, 0), 2, make_shared<lambertian>(pertext)));
+
+    auto difflight = make_shared<diffuse_light>(color(4, 4, 4));
+    objects.add(make_shared<xy_rect>(3, 5, 1, 3, -2, difflight));
+
+    return objects;
+}
+
+hittable_list cornell_box() {
+    hittable_list objects;
+
+    auto red = make_shared<lambertian>(color(.65, .05, .05));
+    auto white = make_shared<lambertian>(color(.73, .73, .73));
+    auto green = make_shared<lambertian>(color(.12, .45, .15));
+    auto light = make_shared<diffuse_light>(color(15, 15, 15));
+
+    objects.add(make_shared<yz_rect>(0, 555, 0, 555, 555, green));
+    objects.add(make_shared<yz_rect>(0, 555, 0, 555, 0, red));
+    objects.add(make_shared<xz_rect>(213, 343, 227, 332, 554, light));
+    objects.add(make_shared<xz_rect>(0, 555, 0, 555, 0, white));
+    objects.add(make_shared<xz_rect>(0, 555, 0, 555, 555, white));
+    objects.add(make_shared<xy_rect>(0, 555, 0, 555, 555, white));
+
+    return objects;
+}
+
 int main() 
 {
+    // Ïß³ÌËø
+    std::mutex mtx;
     // Image
-    const int image_width = 400;
-    const int image_height = 400;
-    const int samples_per_pixel = 100;
+    int image_width = 600;
+    int image_height = 600;
+    int samples_per_pixel = 100;
     const int max_depth = 50;
     color background(0, 0, 0);
-    const double aspect_ratio = static_cast<int>(image_width / image_height);
-    OutputHelper helper(image_width, image_height, "./out/Results/test.png");
+    double aspect_ratio = static_cast<int>(image_width / image_height);
+    OutputHelper helper(image_width, image_height, "./out/Results/light_parallel.png");
 
     // Camera
     point3 lookfrom(13, 2, 3);
@@ -71,7 +105,7 @@ int main()
 
     // World
     hittable_list world;
-    switch (0) {
+    switch (3) {
     case 0:
         world = earth();
         lookfrom = point3(13, 2, 3);
@@ -86,6 +120,22 @@ int main()
         lookat = point3(0, 0, 0);
         vfov = 20.0;
         break;
+    case 2:
+        world = simple_light();
+        samples_per_pixel = 400;
+        background = color(0, 0, 0);
+        lookfrom = point3(26, 3, 6);
+        lookat = point3(0, 2, 0);
+        vfov = 20.0;
+        break;
+    case 3:
+        world = cornell_box();
+        samples_per_pixel = 400;
+        background = color(0, 0, 0);
+        lookfrom = point3(278, 278, -800);
+        lookat = point3(278, 278, 0);
+        vfov = 40.0;
+        break;
     default:
     case -1:
         background = color(0.0, 0.0, 0.0);
@@ -94,7 +144,7 @@ int main()
 
     camera cam(lookfrom, lookat, vup, vfov, aspect_ratio, aperture, dist_to_focus);
 
-    //render
+    //  render
     for (int j = image_height - 1; j >= 0; --j) {
         std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
         for (int i = 0; i < image_width; ++i) {
@@ -107,7 +157,11 @@ int main()
                         double u = (i + random_double()) / (image_width - 1);
                         double v = (j + random_double()) / (image_height - 1);
                         ray r = cam.get_ray(u, v);
-                        pixel_color += ray_color(r, background, world, max_depth);
+                        auto color = ray_color(r, background, world, max_depth);
+                        {
+                            std::lock_guard<std::mutex> lk(mtx);
+                            pixel_color += color;
+                        }
                     }
                 });
             helper.write_color(pixel_color, samples_per_pixel);
