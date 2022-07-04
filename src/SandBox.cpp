@@ -8,6 +8,7 @@
 #include "bvh.h"
 #include "camera.h"
 #include "aarect.h"
+#include "box.h"
 
 color ray_color(const ray& r, const color& background, const hittable& world, int depth)
 {
@@ -79,6 +80,16 @@ hittable_list cornell_box() {
     objects.add(make_shared<xz_rect>(0, 555, 0, 555, 555, white));
     objects.add(make_shared<xy_rect>(0, 555, 0, 555, 555, white));
 
+    shared_ptr<hittable> box1 = make_shared<box>(point3(0, 0, 0), point3(165, 330, 165), white);
+    box1 = make_shared<rotate_y>(box1, 15);
+    box1 = make_shared<translate>(box1, vec3(265, 0, 295));
+    objects.add(box1);
+
+    shared_ptr<hittable> box2 = make_shared<box>(point3(0, 0, 0), point3(165, 165, 165), white);
+    box2 = make_shared<rotate_y>(box2, -18);
+    box2 = make_shared<translate>(box2, vec3(130, 0, 65));
+    objects.add(box2);
+
     return objects;
 }
 
@@ -87,9 +98,9 @@ int main()
     // Ïß³ÌËø
     std::mutex mtx;
     // Image
-    int image_width = 600;
-    int image_height = 600;
-    int samples_per_pixel = 100;
+    int image_width = 1000;
+    int image_height = 1000;
+    int samples_per_pixel = 1000;
     const int max_depth = 50;
     color background(0, 0, 0);
     double aspect_ratio = static_cast<int>(image_width / image_height);
@@ -122,7 +133,6 @@ int main()
         break;
     case 2:
         world = simple_light();
-        samples_per_pixel = 400;
         background = color(0, 0, 0);
         lookfrom = point3(26, 3, 6);
         lookat = point3(0, 2, 0);
@@ -130,7 +140,6 @@ int main()
         break;
     case 3:
         world = cornell_box();
-        samples_per_pixel = 400;
         background = color(0, 0, 0);
         lookfrom = point3(278, 278, -800);
         lookat = point3(278, 278, 0);
