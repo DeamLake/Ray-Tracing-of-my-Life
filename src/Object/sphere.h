@@ -10,7 +10,7 @@ public:
         : center(cen), radius(r), mat_ptr(m) {};
 
     virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override;
-    virtual bool bounding_box(aabb& output_box) const override;
+    virtual bool bounding_box(double time0, double time1, aabb& output_box) const override;
 private:
 private:
     static void get_sphere_uv(const point3& p, double& u, double& v) 
@@ -65,7 +65,7 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) cons
     return true;
 }
 
-bool sphere::bounding_box(aabb& output_box) const 
+bool sphere::bounding_box(double time0, double time1, aabb& output_box) const
 {
     output_box = aabb(
         center - vec3(radius, radius, radius),

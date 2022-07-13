@@ -12,7 +12,8 @@ public:
         double vfov, // vertical field-of-view in degrees
         double aspect_ratio,
         double aperture,
-        double focus_dist) 
+        double focus_dist,
+        double _time0 = 0, double _time1 = 0)
     {
         double theta = degrees_to_radians(vfov);
         double h = tan(theta / 2);
@@ -29,6 +30,8 @@ public:
         lower_left_corner = origin - focus_dist * w - horizontal / 2 - vertical / 2; // 空间中视口位置左下角
 
         lens_radius = aperture / 2; // 棱镜厚度 用于模糊
+        time0 = _time0;  // 快门开放时间阈值
+        time1 = _time1;
     }
 
     ray get_ray(double s, double t) const 
@@ -38,7 +41,7 @@ public:
 
         return ray(
             origin + offset,
-            lower_left_corner + s * horizontal + t * vertical - origin - offset
+            lower_left_corner + s * horizontal + t * vertical - origin - offset, random_double(time0, time1)
         );
     }
 
@@ -48,4 +51,5 @@ private:
     vec3 horizontal, vertical;
     vec3 u, v, w;
     double lens_radius;
+    double time0, time1;  // shutter open/close times
 };

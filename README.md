@@ -2,6 +2,6 @@
 Ray Tracing in One Weekend/The next Week/The Rest of my life
 
 ## Notes
-You can find more info at [_Ray Tracing in One Weekend_](https://raytracing.github.io/books/RayTracingInOneWeekend.html)
+Most of details are based on  [_Ray Tracing in One Weekend_](https://raytracing.github.io/books/RayTracingInOneWeekend.html)
 
 

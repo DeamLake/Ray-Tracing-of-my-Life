@@ -24,7 +24,7 @@ struct hit_record
 class hittable {
 public:
     virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const = 0;
-    virtual bool bounding_box(aabb& output_box) const = 0;
+    virtual bool bounding_box(double time0, double time1, aabb& output_box) const = 0;
 };
 
 class translate : public hittable {
@@ -35,7 +35,7 @@ public:
     virtual bool hit(
         const ray& r, double t_min, double t_max, hit_record& rec) const override;
 
-    virtual bool bounding_box(aabb& output_box) const override;
+    virtual bool bounding_box(double time0, double time1, aabb& output_box) const override;
 
 public:
     shared_ptr<hittable> ptr;
@@ -53,8 +53,8 @@ bool translate::hit(const ray& r, double t_min, double t_max, hit_record& rec) c
     return true;
 }
 
-bool translate::bounding_box(aabb& output_box) const {
-    if (!ptr->bounding_box(output_box))
+bool translate::bounding_box(double time0, double time1, aabb& output_box) const {
+    if (!ptr->bounding_box(time0, time1, output_box))
         return false;
 
     output_box = aabb(
@@ -71,7 +71,7 @@ public:
     virtual bool hit(
         const ray& r, double t_min, double t_max, hit_record& rec) const override;
 
-    virtual bool bounding_box(aabb& output_box) const override {
+    virtual bool bounding_box(double time0, double time1, aabb& output_box) const override {
         output_box = bbox;
         return hasbox;
     }
@@ -88,7 +88,7 @@ rotate_y::rotate_y(shared_ptr<hittable> p, double angle) : ptr(p) {
     auto radians = degrees_to_radians(angle);
     sin_theta = sin(radians);
     cos_theta = cos(radians);
-    hasbox = ptr->bounding_box(bbox);
+    hasbox = ptr->bounding_box(0, 1, bbox);
 
     point3 min(infinity, infinity, infinity);
     point3 max(-infinity, -infinity, -infinity);
@@ -151,7 +151,7 @@ inline bool box_compare(const shared_ptr<hittable> a, const shared_ptr<hittable>
     aabb box_a;
     aabb box_b;
 
-    if (!a->bounding_box(box_a) || !b->bounding_box(box_b))
+    if (!a->bounding_box(0, 0, box_a) || !b->bounding_box(0, 0, box_b))
         std::cerr << "No bounding box in bvh_node constructor.\n";
 
     return box_a.min().e[axis] < box_b.min().e[axis];

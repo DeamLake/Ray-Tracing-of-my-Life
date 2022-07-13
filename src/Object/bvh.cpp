@@ -1,6 +1,6 @@
-#include "bvh.h"
+    #include "bvh.h"
 
-bool bvh_node::bounding_box(aabb& output_box) const 
+bool bvh_node::bounding_box(double time0, double time1, aabb& output_box) const
 {
     output_box = box;
     return true;
@@ -18,7 +18,7 @@ bool bvh_node::hit(const ray& r, double t_min, double t_max, hit_record& rec) co
 }
 
 bvh_node::bvh_node(
-    const std::vector<shared_ptr<hittable>>& src_objects, size_t start, size_t end) 
+    const std::vector<shared_ptr<hittable>>& src_objects, size_t start, size_t end,double time0, double time1)
 {
     auto objects = src_objects; // Create a modifiable array of the source scene objects
 
@@ -51,13 +51,13 @@ bvh_node::bvh_node(
         std::sort(objects.begin() + start, objects.begin() + end, comparator);
 
         auto mid = start + object_span / 2;
-        left = make_shared<bvh_node>(objects, start, mid);
-        right = make_shared<bvh_node>(objects, mid, end);
+        left = make_shared<bvh_node>(objects, start, mid, time0, time1);
+        right = make_shared<bvh_node>(objects, mid, end, time0, time1);
     }
 
     aabb box_left, box_right;
 
-    if (!left->bounding_box(box_left) || !right->bounding_box(box_right))
+    if (!left->bounding_box(time0, time1, box_left) || !right->bounding_box(time0, time1, box_right))
         std::cerr << "No bounding box in bvh_node constructor.\n";
 
     box = surrounding_box(box_left, box_right);

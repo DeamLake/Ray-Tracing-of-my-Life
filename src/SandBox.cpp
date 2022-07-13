@@ -4,6 +4,7 @@
 #include "rtweekend.h"
 #include "color.h"
 #include "sphere.h"
+#include "constant_medium.h"
 #include "material.h"
 #include "bvh.h"
 #include "camera.h"
@@ -34,7 +35,8 @@ color ray_color(const ray& r, const color& background, const hittable& world, in
     return emitted + attenuation * ray_color(scattered, background, world, depth - 1);
 }
 
-hittable_list two_spheres() {
+hittable_list two_spheres() 
+{
     hittable_list objects;
 
     auto checker = make_shared<checker_texture>(color(0.2, 0.3, 0.1), color(0.9, 0.9, 0.9));
@@ -44,7 +46,8 @@ hittable_list two_spheres() {
     return objects;
 }
 
-hittable_list earth() {
+hittable_list earth() 
+{
     auto earth_texture = make_shared<image_texture>("../Resource/earthmap.jpg");
     auto earth_surface = make_shared<lambertian>(earth_texture);
     auto globe = make_shared<sphere>(point3(0, 0, 0), 2, earth_surface);
@@ -52,7 +55,8 @@ hittable_list earth() {
     return hittable_list(globe);
 }
 
-hittable_list simple_light() {
+hittable_list simple_light() 
+{
     hittable_list objects;
 
     auto pertext = make_shared<noise_texture>(4);
@@ -65,7 +69,8 @@ hittable_list simple_light() {
     return objects;
 }
 
-hittable_list cornell_box() {
+hittable_list cornell_box()
+{
     hittable_list objects;
 
     auto red = make_shared<lambertian>(color(.65, .05, .05));
@@ -93,6 +98,36 @@ hittable_list cornell_box() {
     return objects;
 }
 
+hittable_list cornell_smoke()
+{
+    hittable_list objects;
+
+    auto red = make_shared<lambertian>(color(.65, .05, .05));
+    auto white = make_shared<lambertian>(color(.73, .73, .73));
+    auto green = make_shared<lambertian>(color(.12, .45, .15));
+    auto light = make_shared<diffuse_light>(color(7, 7, 7));
+
+    objects.add(make_shared<yz_rect>(0, 555, 0, 555, 555, green));
+    objects.add(make_shared<yz_rect>(0, 555, 0, 555, 0, red));
+    objects.add(make_shared<xz_rect>(113, 443, 127, 432, 554, light));
+    objects.add(make_shared<xz_rect>(0, 555, 0, 555, 555, white));
+    objects.add(make_shared<xz_rect>(0, 555, 0, 555, 0, white));
+    objects.add(make_shared<xy_rect>(0, 555, 0, 555, 555, white));
+
+    shared_ptr<hittable> box1 = make_shared<box>(point3(0, 0, 0), point3(165, 330, 165), white);
+    box1 = make_shared<rotate_y>(box1, 15);
+    box1 = make_shared<translate>(box1, vec3(265, 0, 295));
+
+    shared_ptr<hittable> box2 = make_shared<box>(point3(0, 0, 0), point3(165, 165, 165), white);
+    box2 = make_shared<rotate_y>(box2, -18);
+    box2 = make_shared<translate>(box2, vec3(130, 0, 65));
+
+    objects.add(make_shared<constant_medium>(box1, 0.01, color(0, 0, 0)));
+    objects.add(make_shared<constant_medium>(box2, 0.01, color(1, 1, 1)));
+
+    return objects;
+}
+
 int main() 
 {
     // 线程锁
@@ -116,7 +151,7 @@ int main()
 
     // World
     hittable_list world;
-    switch (3) {
+    switch (4) {
     case 0:
         world = earth();
         lookfrom = point3(13, 2, 3);
@@ -145,6 +180,13 @@ int main()
         lookat = point3(278, 278, 0);
         vfov = 40.0;
         break;
+    case 4:
+        world = cornell_smoke();
+        background = color(0, 0, 0);
+        lookfrom = point3(278, 278, -800);
+        lookat = point3(278, 278, 0);
+        vfov = 40.0;
+        break;
     default:
     case -1:
         background = color(0.0, 0.0, 0.0);
@@ -162,7 +204,7 @@ int main()
                 [&](tbb::blocked_range<size_t> r) {
                     for (size_t s = r.begin(); s < r.end(); ++s)
                     {
-                        // 增加偏移用于多次光线采样
+                        // 增加偏移用于反走样
                         double u = (i + random_double()) / (image_width - 1);
                         double v = (j + random_double()) / (image_height - 1);
                         ray r = cam.get_ray(u, v);
